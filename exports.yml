@@ -1,0 +1,15 @@
+kubridge:
+  attributes: 0
+  version:
+    major: 1
+    minor: 0
+  main:
+    start: module_start
+    stop: module_stop
+  modules:
+    kubridge:
+      syscall: true
+      functions:
+        - kuKernelAllocMemBlock
+        - kuKernelFlushCaches
+        - kuKernelCpuUnrestrictedMemcpy
