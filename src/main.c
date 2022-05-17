@@ -4,6 +4,8 @@
 #include <psp2kern/kernel/threadmgr.h>
 #include <taihen.h>
 
+#include "internal.h"
+
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
 
 void (* _ksceKernelCpuDcacheWritebackInvalidateRange)(const void *ptr, SceSize len);
@@ -29,11 +31,11 @@ SceUID kuKernelAllocMemBlock(const char *name, SceKernelMemBlockType type, SceSi
 
   ENTER_SYSCALL(state);
 
-  res = ksceKernelStrncpyUserToKernel(k_name, (uintptr_t)name, sizeof(k_name));
+  res = ksceKernelStrncpyUserToKernel(k_name, name, sizeof(k_name));
   if (res < 0)
     goto error;
 
-  res = ksceKernelMemcpyUserToKernel(&k_opt, (uintptr_t)opt, sizeof(k_opt));
+  res = ksceKernelMemcpyUserToKernel(&k_opt, opt, sizeof(k_opt));
   if (res < 0)
     goto error;
 
@@ -88,6 +90,8 @@ int module_start(SceSize args, void *argp) {
 
   module_get_export_func(KERNEL_PID, "ScePower", TAI_ANY_LIBRARY, 0xC63DACD5, (uintptr_t *)&_kscePowerGetSysClockFrequency);
   module_get_export_func(KERNEL_PID, "ScePower", TAI_ANY_LIBRARY, 0x0E333BEC, (uintptr_t *)&_kscePowerSetSysClockFrequency);
+
+  SetupExceptionHandlers();
 
   return SCE_KERNEL_START_SUCCESS;
 }

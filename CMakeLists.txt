@@ -8,22 +8,40 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-project(kubridge)
+project(kubridge C ASM)
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/exceptions_user.h
+                   COMMAND arm-vita-eabi-as ${CMAKE_CURRENT_SOURCE_DIR}/src/exceptions_user.S -o exceptions_user.o
+                   COMMAND arm-vita-eabi-objcopy -O binary exceptions_user.o exceptions_user.bin
+                   COMMAND xxd -i exceptions_user.bin ${CMAKE_CURRENT_BINARY_DIR}/exceptions_user.h
+                   COMMAND rm -f exceptions_user.o exceptions_user.bin
+                   DEPENDS src/exceptions_user.S)
+
 add_executable(kubridge
-  main.c
+  src/main.c
+  src/exceptions.c
+  src/exceptions.S
+  ${CMAKE_CURRENT_BINARY_DIR}/exceptions_user.h
 )
+
+target_include_directories(kubridge PRIVATE
+  ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(kubridge
   taihenForKernel_stub
   taihenModuleUtils_stub
+  SceCpuForDriver_stub
   SceSysclibForDriver_stub
   SceSysmemForDriver_stub
+  SceProcEventForDriver_stub
   SceThreadmgrForDriver_stub
+  SceDebugForDriver_stub
+  SceSysrootForKernel_stub
+  SceSysrootForDriver_stub
 )
 
 vita_create_self(kubridge.skprx kubridge CONFIG exports.yml UNSAFE)

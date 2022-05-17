@@ -8,6 +8,38 @@ extern "C" {
 #include <psp2/types.h>
 #include <psp2/kernel/sysmem.h>
 
+#define KU_KERNEL_ABORT_TYPE_DATA_ABORT 0
+#define KU_KERNEL_ABORT_TYPE_PREFETCH_ABORT 1
+
+typedef struct KuKernelAbortContext
+{
+    SceUInt32 r0;
+    SceUInt32 r1;
+    SceUInt32 r2;
+    SceUInt32 r3;
+    SceUInt32 r4;
+    SceUInt32 r5;
+    SceUInt32 r6;
+    SceUInt32 r7;
+    SceUInt32 r8;
+    SceUInt32 r9;
+    SceUInt32 r10;
+    SceUInt32 r11;
+    SceUInt32 r12;
+    SceUInt32 sp;
+    SceUInt32 lr;
+    SceUInt32 pc;
+    SceUInt64 vfpRegisters[32];
+    SceUInt32 SPSR;
+    SceUInt32 FPSCR;
+    SceUInt32 FPEXC;
+    SceUInt32 FSR;
+    SceUInt32 FAR;
+    SceUInt32 abortType;
+} KuKernelAbortContext;
+
+typedef void (*KuKernelAbortHandler)(KuKernelAbortContext *);
+
 typedef struct SceKernelAddrPair {
   uint32_t addr;                  //!< Address
   uint32_t length;                //!< Length
@@ -54,6 +86,9 @@ int kuKernelCpuUnrestrictedMemcpy(void *dst, const void *src, SceSize len);
 
 int kuPowerGetSysClockFrequency(void);
 int kuPowerSetSysClockFrequency(int freq);
+
+int kuKernelRegisterAbortHandler(KuKernelAbortHandler pHandler, KuKernelAbortHandler *pOldHandler);
+void kuKernelReleaseAbortHandler();
 
 #ifdef __cplusplus
 }

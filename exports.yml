@@ -15,3 +15,5 @@ kubridge:
         - kuKernelCpuUnrestrictedMemcpy: 0x91D9CABC
         - kuPowerGetSysClockFrequency: 0x13371337
         - kuPowerSetSysClockFrequency: 0x13371338
+        - kuKernelRegisterAbortHandler:
+        - kuKernelReleaseAbortHandler:
