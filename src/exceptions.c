@@ -43,6 +43,7 @@ void *userAbortBase;
 KuKernelAbortHandler defaultUserAbortHandler;
 
 static ProcessAbortHandler *handlers;
+int32_t handlersMutex = 0;
 static SceUID userAbortMemBlock = -1;
 
 __attribute__((target("arm"), __noreturn__)) void ReturnFromException(SceExcpmgrExceptionContext *excpContext)
@@ -121,6 +122,7 @@ ProcessAbortHandler *GetProcessAbortHandler(SceUID pid)
         cur->pid = pid;
         cur->pHandler = defaultUserAbortHandler;
         cur->pNext = handlers;
+        cur->userAbortMemBlock = -1;
         handlers = cur;
 
         SceKernelAllocMemBlockKernelOpt opt;
@@ -209,7 +211,11 @@ static int CreateProcess(SceUID pid, SceProcEventInvokeParam2 *a2, int a3)
 
 static int DestroyProcess(SceUID pid, SceProcEventInvokeParam1 *a2, int a3)
 {
+    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+
     RemoveProcessAbortHandler(pid);
+
+    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
 
     return 0;
 }
@@ -253,6 +259,8 @@ void SetupExceptionHandlers()
 
 int kuKernelRegisterAbortHandler(KuKernelAbortHandler pHandler, KuKernelAbortHandler *pOldHandler)
 {
+    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+
     if (pHandler == NULL)
         return SCE_KERNEL_ERROR_INVALID_ARGUMENT;
 
@@ -265,14 +273,20 @@ int kuKernelRegisterAbortHandler(KuKernelAbortHandler pHandler, KuKernelAbortHan
 
     procHandler->pHandler = pHandler;
 
+    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
+
     return 0;
 }
 
 void kuKernelReleaseAbortHandler()
 {
+    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+
     ProcessAbortHandler *procHandler = GetProcessAbortHandler(0);
     if (procHandler == NULL)
         return;
 
     procHandler->pHandler = defaultUserAbortHandler;
+
+    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
 }

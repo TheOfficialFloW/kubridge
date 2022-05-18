@@ -11,9 +11,12 @@
 .global GetProcessAbortHandler
 .global ReturnFromException
 .global CheckStackPointer
+.global ksceKernelCpuSpinLockIrqSave
+.global ksceKernelCpuSpinLockIrqRestore
 
 .global userAbortBase
 .global defaultUserAbortHandler
+.global handlersMutex
 
 LReturnFromAbortHandler:
     mov   r1, #0 @ Clear FSR and FAR registers
@@ -45,15 +48,22 @@ LReturnFromAbortHandler:
 
 LReturnFromDefaultAbortHandler:
     mov r4, r0
-    mov r0, #0
-    ldr r1, =GetProcessAbortHandler
+    ldr r0, =handlersMutex
+    ldr r1, =ksceKernelCpuSpinLockIrqSave
     blx r1
+    mov r5, r0
+    mov r0, #0
+    bl GetProcessAbortHandler
     ldr r1, =defaultUserAbortHandler
     ldr r1, [r1]
     str r1, [r0, #0x8]
     ldr r1, =defaultUserAbortHandler
     ldr r1, [r1]
     str r1, [r0, #0x8]
+    ldr r0, =handlersMutex
+    mov r1, r5
+    ldr r2, =ksceKernelCpuSpinLockIrqRestore
+    blx r2
     ldr r2, [r4, #0x154] @ abortType
     add r5, r4, #0x14C
     ldrd r0, r1, [r5]
@@ -88,10 +98,14 @@ LReturnFromDefaultAbortHandler:
     ldmia sp!, {lr, pc}
 
 LSetupAbortContext:
-    stmdb sp!, {r4 - r7, lr}
+    stmdb sp!, {r4 - r8, lr}
     sub sp, #0x24
     mov r4, r0
     mov r5, r1
+    ldr r0, =handlersMutex
+    ldr r1, =ksceKernelCpuSpinLockIrqSave
+    blx r1
+    mov r8, r0
     mov r0, #0xFFFFFFFF
     bl GetProcessAbortHandler
     cmp r0, #0
@@ -142,8 +156,14 @@ LSetupAbortContext:
     str r1, [r4, #0x3C] @ Set the pc to the user abort dispatch
     mov r0, r4
 LSetupAbortContext_return:
+    mov r4, r0
+    ldr r0, =handlersMutex
+    mov r1, r8
+    ldr r2, =ksceKernelCpuSpinLockIrqRestore
+    blx r2
+    mov r0, r4
     add sp, #0x24
-    ldmia sp!, {r4 - r7, pc}
+    ldmia sp!, {r4 - r8, pc}
 
 .global DabtExceptionHandler_lvl0
 .global DabtExceptionHandler_lvl0_retAddr
