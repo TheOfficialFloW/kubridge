@@ -10,6 +10,6 @@ kubridge:
     kubridge:
       syscall: true
       functions:
-        - kuKernelAllocMemBlock
-        - kuKernelFlushCaches
-        - kuKernelCpuUnrestrictedMemcpy
+        - kuKernelAllocMemBlock: 0x2EF7C290
+        - kuKernelFlushCaches: 0x38B70744
+        - kuKernelCpuUnrestrictedMemcpy: 0x91D9CABC
