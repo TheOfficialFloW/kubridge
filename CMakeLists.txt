@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.20)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VITASDK})
@@ -28,7 +28,13 @@ target_link_libraries(kubridge
 
 vita_create_self(kubridge.skprx kubridge CONFIG exports.yml UNSAFE)
 
-vita_create_stubs(stubs kubridge ${CMAKE_SOURCE_DIR}/exports.yml KERNEL)
+vita_create_stubs(stubs kubridge ${CMAKE_CURRENT_SOURCE_DIR}/exports.yml KERNEL)
+
+add_custom_target(kubridge_all
+  ALL
+  DEPENDS libkubridge_stub.a
+  DEPENDS libkubridge_stub_weak.a
+)
 
 install(DIRECTORY ${CMAKE_BINARY_DIR}/stubs/
   DESTINATION lib
