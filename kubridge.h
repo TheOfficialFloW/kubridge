@@ -52,6 +52,9 @@ void kuKernelFlushCaches(const void *ptr, SceSize len);
 
 int kuKernelCpuUnrestrictedMemcpy(void *dst, const void *src, SceSize len);
 
+int kuPowerGetSysClockFrequency(void);
+int kuPowerSetSysClockFrequency(int freq);
+
 #ifdef __cplusplus
 }
 #endif

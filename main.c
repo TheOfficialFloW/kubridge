@@ -9,6 +9,8 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
 void (* _ksceKernelCpuDcacheWritebackInvalidateRange)(const void *ptr, SceSize len);
 void (* _ksceKernelCpuIcacheInvalidateRange)(const void *ptr, SceSize len);
 void (* _ksceKernelCpuIcacheAndL2WritebackInvalidateRange)(const void *ptr, SceSize len);
+int (* _kscePowerGetSysClockFrequency)(void);
+int (* _kscePowerSetSysClockFrequency)(int freq);
 
 void kuKernelFlushCaches(const void *ptr, SceSize len) {
   uintptr_t ptr_aligned;
@@ -62,6 +64,14 @@ int kuKernelCpuUnrestrictedMemcpy(void *dst, const void *src, SceSize len) {
   return 0;
 }
 
+int kuPowerGetSysClockFrequency(void) {
+  return _kscePowerGetSysClockFrequency();
+}
+
+int kuPowerSetSysClockFrequency(int freq) {
+  return _kscePowerSetSysClockFrequency(freq);
+}
+
 void _start() __attribute__ ((weak, alias("module_start")));
 int module_start(SceSize args, void *argp) {
   int res;
@@ -75,6 +85,9 @@ int module_start(SceSize args, void *argp) {
   res = module_get_export_func(KERNEL_PID, "SceSysmem", TAI_ANY_LIBRARY, 0x19F17BD0, (uintptr_t *)&_ksceKernelCpuIcacheAndL2WritebackInvalidateRange);
   if (res < 0)
     module_get_export_func(KERNEL_PID, "SceSysmem", TAI_ANY_LIBRARY, 0x73E895EA, (uintptr_t *)&_ksceKernelCpuIcacheAndL2WritebackInvalidateRange);
+
+  module_get_export_func(KERNEL_PID, "ScePower", TAI_ANY_LIBRARY, 0xC63DACD5, (uintptr_t *)&_kscePowerGetSysClockFrequency);
+  module_get_export_func(KERNEL_PID, "ScePower", TAI_ANY_LIBRARY, 0x0E333BEC, (uintptr_t *)&_kscePowerSetSysClockFrequency);
 
   return SCE_KERNEL_START_SUCCESS;
 }
