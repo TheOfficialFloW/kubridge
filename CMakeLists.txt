@@ -15,8 +15,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/exceptions_user.h
-                   COMMAND arm-vita-eabi-as ${CMAKE_CURRENT_SOURCE_DIR}/src/exceptions_user.S -o exceptions_user.o
-                   COMMAND arm-vita-eabi-objcopy -O binary exceptions_user.o exceptions_user.bin
+                   COMMAND "${VITASDK}/bin/arm-vita-eabi-as${TOOL_OS_SUFFIX}" ${CMAKE_CURRENT_SOURCE_DIR}/src/exceptions_user.S -o exceptions_user.o
+                   COMMAND ${CMAKE_OBJCOPY} -O binary exceptions_user.o exceptions_user.bin
                    COMMAND xxd -i exceptions_user.bin ${CMAKE_CURRENT_BINARY_DIR}/exceptions_user.h
                    COMMAND rm -f exceptions_user.o exceptions_user.bin
                    DEPENDS src/exceptions_user.S)
