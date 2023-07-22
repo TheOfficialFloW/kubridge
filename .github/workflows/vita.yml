@@ -1,0 +1,21 @@
+name: PlayStation Vita CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: vitasdk/vitasdk:latest
+
+    steps:
+      - name: Set up build environment
+        run: |
+          apk add --no-cache ninja xxd
+          vdpm taihen
+
+      - uses: actions/checkout@v3
+
+      - name: CMake
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake -G Ninja
+          cmake --build build --config Release
