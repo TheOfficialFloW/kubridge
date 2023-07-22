@@ -6,7 +6,7 @@ kubridge:
   main:
     start: module_start
     stop: module_stop
-  modules:
+  libraries:
     kubridge:
       syscall: true
       functions:
@@ -15,5 +15,5 @@ kubridge:
         - kuKernelCpuUnrestrictedMemcpy: 0x91D9CABC
         - kuPowerGetSysClockFrequency: 0x13371337
         - kuPowerSetSysClockFrequency: 0x13371338
-        - kuKernelRegisterAbortHandler:
-        - kuKernelReleaseAbortHandler:
+        - kuKernelRegisterAbortHandler: 0x13371339
+        - kuKernelReleaseAbortHandler: 0x13371340
