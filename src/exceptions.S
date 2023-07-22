@@ -11,8 +11,8 @@
 .global GetProcessAbortHandler
 .global ReturnFromException
 .global CheckStackPointer
-.global ksceKernelCpuSpinLockIrqSave
-.global ksceKernelCpuSpinLockIrqRestore
+.global ksceKernelRWSpinlockLowReadLockCpuSuspendIntr
+.global ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr
 
 .global userAbortBase
 .global defaultUserAbortHandler
@@ -49,7 +49,7 @@ LReturnFromAbortHandler:
 LReturnFromDefaultAbortHandler:
     mov r4, r0
     ldr r0, =handlersMutex
-    ldr r1, =ksceKernelCpuSpinLockIrqSave
+    ldr r1, =ksceKernelRWSpinlockLowReadLockCpuSuspendIntr
     blx r1
     mov r5, r0
     mov r0, #0
@@ -62,7 +62,7 @@ LReturnFromDefaultAbortHandler:
     str r1, [r0, #0x8]
     ldr r0, =handlersMutex
     mov r1, r5
-    ldr r2, =ksceKernelCpuSpinLockIrqRestore
+    ldr r2, =ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr
     blx r2
     ldr r2, [r4, #0x154] @ abortType
     add r5, r4, #0x14C
@@ -103,7 +103,7 @@ LSetupAbortContext:
     mov r4, r0
     mov r5, r1
     ldr r0, =handlersMutex
-    ldr r1, =ksceKernelCpuSpinLockIrqSave
+    ldr r1, =ksceKernelRWSpinlockLowReadLockCpuSuspendIntr
     blx r1
     mov r8, r0
     mov r0, #0xFFFFFFFF
@@ -159,7 +159,7 @@ LSetupAbortContext_return:
     mov r4, r0
     ldr r0, =handlersMutex
     mov r1, r8
-    ldr r2, =ksceKernelCpuSpinLockIrqRestore
+    ldr r2, =ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr
     blx r2
     mov r0, r4
     add sp, #0x24

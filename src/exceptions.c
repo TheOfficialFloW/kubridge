@@ -211,11 +211,11 @@ static int CreateProcess(SceUID pid, SceProcEventInvokeParam2 *a2, int a3)
 
 static int DestroyProcess(SceUID pid, SceProcEventInvokeParam1 *a2, int a3)
 {
-    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+    int irqState = ksceKernelRWSpinlockLowReadLockCpuSuspendIntr(&handlersMutex);
 
     RemoveProcessAbortHandler(pid);
 
-    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
+	ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr(&handlersMutex, irqState);
 
     return 0;
 }
@@ -259,7 +259,7 @@ void SetupExceptionHandlers()
 
 int kuKernelRegisterAbortHandler(KuKernelAbortHandler pHandler, KuKernelAbortHandler *pOldHandler)
 {
-    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+    int irqState = ksceKernelRWSpinlockLowReadLockCpuSuspendIntr(&handlersMutex);
 
     if (pHandler == NULL)
         return SCE_KERNEL_ERROR_INVALID_ARGUMENT;
@@ -273,14 +273,14 @@ int kuKernelRegisterAbortHandler(KuKernelAbortHandler pHandler, KuKernelAbortHan
 
     procHandler->pHandler = pHandler;
 
-    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
+	ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr(&handlersMutex, irqState);
 
     return 0;
 }
 
 void kuKernelReleaseAbortHandler()
 {
-    int irqState = ksceKernelCpuSpinLockIrqSave(&handlersMutex);
+    int irqState = ksceKernelRWSpinlockLowReadLockCpuSuspendIntr(&handlersMutex);
 
     ProcessAbortHandler *procHandler = GetProcessAbortHandler(0);
     if (procHandler == NULL)
@@ -288,5 +288,5 @@ void kuKernelReleaseAbortHandler()
 
     procHandler->pHandler = defaultUserAbortHandler;
 
-    ksceKernelCpuSpinLockIrqRestore(&handlersMutex, irqState);
+	ksceKernelRWSpinlockLowReadUnlockCpuResumeIntr(&handlersMutex, irqState);
 }
